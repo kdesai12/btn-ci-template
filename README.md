@@ -1,8 +1,8 @@
 # btn-ci-template
 
-Public shared CI pipeline (reusable workflow). No secrets live here — auth is
-the automatic `GITHUB_TOKEN` plus OIDC keyless (GHCR + cosign), same as the
-private source.
+Pipeline source of truth for the btn platform CI (reusable workflow). No
+secrets live here — auth is the automatic `GITHUB_TOKEN` plus OIDC keyless
+(GHCR + cosign), same as the private source.
 
 ## Use
 
@@ -25,6 +25,7 @@ jobs:
 
 ## Source
 
-Extracted from the private `kdesai12/btn-bedrock` pipeline
-(`.github/workflows/pipeline.yml`). That repo stays private; this repo carries
-the shared steps only.
+This repo is the pipeline source of truth. It is synced from the private
+`kdesai12/btn-bedrock` pipeline (`.github/workflows/pipeline.yml`); that repo
+stays private. Callers pin `.github/workflows/pipeline.yml` in this repo by
+full commit SHA.

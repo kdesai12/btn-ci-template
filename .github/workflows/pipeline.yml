@@ -1,4 +1,5 @@
-# ci-templates: reusable pipeline (D8/D10/D11). Callers pin this workflow by full SHA.
+# Pipeline source of truth: this file in kdesai12/btn-ci-template.
+# Synced from btn-bedrock main `.github/workflows/pipeline.yml`; callers pin this workflow by full SHA.
 # Pins bootstrapped 2026-10-27 (template bootstrap per D10); Dependabot maintains them from here.
 # Stages: path-filter -> test -> build -> Trivy scan -> push GHCR by digest -> (promotion: cosign sign + SBOM)
 name: pipeline
@@ -72,6 +73,28 @@ jobs:
           sudo rm -rf /usr/share/dotnet /opt/hostedtoolcache \
             /usr/local/lib/android /opt/ghc /usr/local/share/boost
           df -h
+      - name: Restore cargo cache for fork PRs (restore-only, no save from untrusted code)
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.lock', 'rust-toolchain.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+      - name: Cache cargo registry + target
+        if: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true) }}
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.lock', 'rust-toolchain.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
       - name: Install protoc (prost-build needs it for lance-encoding;
           ubuntu-latest lacks it; the fedora-data runner already has it)
         if: inputs.runner == 'hosted'
